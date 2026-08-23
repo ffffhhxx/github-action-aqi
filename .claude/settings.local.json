@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(cd \"d:/AAcode/vscode/code/AAdemo/github-action-aqi\" && rmdir .github/workflows .github 2>/dev/null; ls -a | grep -E \"^\\\\.\\(github|env\\)\" || echo \"空目录已清理\"; echo \"--- README.md ---\"; cat README.md 2>/dev/null | head -60)"
+    ]
+  }
+}
