@@ -8,7 +8,8 @@ import { aqiLevel, primaryPollutant, POLLUTANTS } from './aqi.js'
 // 数据流（token 不进入前端）：
 // 接口 token 只放在 GitHub Actions 的 secret 里，由 scripts/fetch-aqi.mjs 定时抓取并
 // 提交 public/data/aqi.json；前端只读这个 json 文件，不直连接口。
-const DATA_URL = '/data/aqi.json'
+// 用 BASE_URL 拼相对路径，跟随 vite 的 base 配置（部署在子路径下也能找到数据文件）
+const DATA_URL = `${import.meta.env.BASE_URL}data/aqi.json`
 
 /** 获取 AQI 数据：读取 json 数据文件（由 GitHub Actions 定时更新） */
 export async function fetchAqiData() {

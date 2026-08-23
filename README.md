@@ -46,6 +46,20 @@ token 不进代码，从环境变量 `AQI_TOKEN` 读取：
 - 已在 vite.config.js 中开启 `host: '0.0.0.0'`，局域网内其他设备可通过 `http://本机IP:6633` 访问
 - 局域网访问不通时，多半是 **Windows 防火墙**拦了 Node.js 的入站连接
 
+## 部署（GitHub Pages）
+
+仓库里已配置 `.github/workflows/deploy.yml`，push 到 `main` 会自动构建并发布页面，网址：
+
+```
+https://用户名.github.io/github-action-aqi/
+```
+
+只需手动开一次开关：
+
+1. 仓库 → **Settings** → **Pages** → **Source** 选 **GitHub Actions**
+2. 之后每次 push 到 main 都会自动构建 + 发布；定时抓取的数据更新提交也会触发重新部署，页面数据保持最新
+3. 相关说明：`vite.config.js` 中 `base: './'` 使用相对路径，页面部署在子路径/自定义域名下都通用
+
 ## 说明
 
 - 城市 AQI = 该城市各点位 AQI 的**最大值**（国标口径）
