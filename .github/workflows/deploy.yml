@@ -1,17 +1,25 @@
-name: 部署到 GitHub Pages
+name: 抓取数据并部署到 GitHub Pages
 
+# 触发时机：
+#  - schedule:  每半小时一次（:15 和 :45），抓新数据 → 构建 → 部署
+#  - push:      手动 push 代码到 main 时也走一遍（顺带刷新数据）
+#  - workflow_dispatch: 可随时手动触发
+# 说明：抓取脚本提交数据用的 GITHUB_TOKEN 不会触发本工作流（GitHub 安全规则），
+#       所以把「抓取 + 构建 + 部署」放在同一个工作流里，一步到位，避免数据更新后不部署。
 on:
+  schedule:
+    - cron: '15,45 * * * *'
   push:
     branches: [main]
-  workflow_dispatch: # 允许手动触发
+  workflow_dispatch:
 
-# 发布到 Pages 需要的权限
+# contents: write = 提交数据文件需要；pages: write + id-token: write = 发布 Pages 需要
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
-# 同一时间只跑一次部署，新的触发会取消正在跑的旧任务
+# 同一时间只跑一次，新的触发会取消正在跑的旧任务
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -28,6 +36,24 @@ jobs:
         with:
           node-version: 22
 
+      - name: 抓取 AQI 数据
+        env:
+          AQI_TOKEN: ${{ secrets.AQI_TOKEN }}
+        # 抓取失败不中断：用仓库里已有的数据继续构建部署，避免接口临时故障导致断更
+        run: node scripts/fetch-aqi.mjs || echo "抓取失败，用仓库已有数据继续构建部署"
+
+      - name: 提交数据更新（如有变化）
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/aqi.json
+          if git diff --cached --quiet; then
+            echo "数据无变化，跳过提交"
+          else
+            git commit -m "chore: 更新 AQI 数据"
+            git push
+          fi
+
       - name: 安装依赖
         run: npm ci
 
@@ -36,6 +62,9 @@ jobs:
 
       - name: 配置 Pages
         uses: actions/configure-pages@v5
+        with:
+          # 仓库还没开 GitHub Pages 时，自动用 API 开启（需要 pages: write 权限，上方已声明）
+          enablement: true
 
       - name: 上传构建产物
         uses: actions/upload-pages-artifact@v3

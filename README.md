@@ -11,10 +11,10 @@
 
 ## 数据来源与流程
 
-接口 token 放在 GitHub Actions 的 secret 里，由定时任务抓取后提交数据文件，**前端只读数据文件、不直连接口，token 不会进入网页**：
+接口 token 放在 GitHub Actions 的 secret 里，由单个定时工作流完成「抓数据 → 构建 → 部署」，**前端只读数据文件、不直连接口，token 不会进入网页**：
 
 ```
-GitHub Actions（secret 里的 AQI_TOKEN）──▶ 接口 getPmNow ──▶ 提交 public/data/aqi.json
+每半小时：GitHub Actions（secret 里的 AQI_TOKEN）──▶ 接口 getPmNow ──▶ 更新 aqi.json ──▶ 构建 ──▶ 部署
 打开页面 ──▶ 读取 /data/aqi.json ──▶ 前端聚合渲染
 ```
 
@@ -57,7 +57,7 @@ https://用户名.github.io/github-action-aqi/
 只需手动开一次开关：
 
 1. 仓库 → **Settings** → **Pages** → **Source** 选 **GitHub Actions**
-2. 之后每次 push 到 main 都会自动构建 + 发布；定时抓取的数据更新提交也会触发重新部署，页面数据保持最新
+2. 之后每半小时的定时任务会自动抓数据 → 构建 → 部署，页面数据保持最新；手动 push 代码到 main 也会触发一次构建部署
 3. 相关说明：`vite.config.js` 中 `base: './'` 使用相对路径，页面部署在子路径/自定义域名下都通用
 
 ## 说明
